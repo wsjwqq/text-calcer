@@ -124,7 +124,21 @@ const calculateResults = (value: string): string[] => { // <-- 返回类型改�
 function formatEvalResultNumber(evalResult: number, needPercent: boolean): string {
     if (Number.isInteger(evalResult)) return evalResult.toString();
 
-    const formatted = format(evalResult, { notation: 'fixed', precision: 4 });
+    // 获取小数部分
+    const decimalPart = evalResult.toString().split('.')[1] || '';
+    const decimalLength = decimalPart.length;
+    
+    let formatted: string;
+    
+    // 如果小数位数小于等于10位，正常显示
+    if (decimalLength <= 10) {
+        formatted = evalResult.toString();
+    } else {
+        // 小数位数多于10位，最多保留10位小数
+        formatted = format(evalResult, { notation: 'fixed', precision: 10 });
+    }
+    
+    // 移除末尾无意义的0（但保留最少一位小数以表示它是小数）
     let res = parseFloat(formatted).toString();
 
     // 股票涨跌幅显示优化 假如比例值处在[70%, 130%]时显示具体的百分比 实际上A股日内涨跌幅是20%以内 30%能满足大部分情况
@@ -235,15 +249,14 @@ function solveEquation(equation: string): string {
 
     // 求解 f(a) = 0 => a = -f(0) / coeff
     const result = -f0 / coeff;
-    // 如果结果是小数，保留10位小数
-    const resultStr = result.toString();
-
-    // 如果存在小数点，且小数位数大于10位，则格式化为保留10位小数
-    if (resultStr.includes('.')) {
-        const fractionalPart = resultStr.split('.')[1];
-        if (fractionalPart.length > 10) {
-            return result.toFixed(10);
-        }
+    // 获取小数部分长度
+    const decimalPart = result.toString().split('.')[1] || '';
+    const decimalLength = decimalPart.length;
+    
+    // 如果小数位数多于10位，最多保留10位小数
+    if (decimalLength > 10) {
+        return result.toFixed(10);
     }
-    return resultStr;
+    
+    return result.toString();
 }
