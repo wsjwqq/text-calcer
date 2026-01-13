@@ -235,14 +235,14 @@ function solveEquation(equation: string): string {
 
     // 求解 f(a) = 0 => a = -f(0) / coeff
     const result = -f0 / coeff;
-    // 如果结果是小数，保留4位小数
+    // 如果结果是小数，保留10位小数
     const resultStr = result.toString();
 
-    // 如果存在小数点，且小数位数大于4位，则格式化为保留4位小数
+    // 如果存在小数点，且小数位数大于10位，则格式化为保留10位小数
     if (resultStr.includes('.')) {
         const fractionalPart = resultStr.split('.')[1];
-        if (fractionalPart.length > 4) {
-            return result.toFixed(4);
+        if (fractionalPart.length > 10) {
+            return result.toFixed(10);
         }
     }
     return resultStr;
