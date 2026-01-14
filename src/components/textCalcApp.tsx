@@ -124,33 +124,37 @@ const calculateResults = (value: string): string[] => { // <-- 返回类型改�
 function formatEvalResultNumber(evalResult: number, needPercent: boolean): string {
     if (Number.isInteger(evalResult)) return evalResult.toString();
 
-    // 获取小数部分
-    const decimalPart = evalResult.toString().split('.')[1] || '';
+    // 使用 mathjs 的 bignumber 进行高精度计算和格式化
+    const bnResult = math.bignumber(evalResult);
+    
+    // 获取小数位数
+    const decimalStr = bnResult.toString();
+    const decimalPart = decimalStr.split('.')[1] || '';
     const decimalLength = decimalPart.length;
     
     let formatted: string;
     
-    // 如果小数位数小于等于10位，正常显示
     if (decimalLength <= 10) {
-        formatted = evalResult.toString();
+        // 小数位数少，直接显示，但使用 mathjs 格式避免浮点误差
+        formatted = format(bnResult, { notation: 'fixed', precision: Math.min(decimalLength, 12) });
+        // 移除末尾的0
+        formatted = parseFloat(formatted).toString();
     } else {
-        // 小数位数多于10位，最多保留10位小数
-        formatted = format(evalResult, { notation: 'fixed', precision: 10 });
+        // 小数位数多，最多保留10位
+        formatted = format(bnResult, { notation: 'fixed', precision: 10 });
+        formatted = parseFloat(formatted).toString();
     }
     
-    // 移除末尾无意义的0（但保留最少一位小数以表示它是小数）
-    let res = parseFloat(formatted).toString();
-
-    // 股票涨跌幅显示优化 假如比例值处在[70%, 130%]时显示具体的百分比 实际上A股日内涨跌幅是20%以内 30%能满足大部分情况
+    // 股票涨跌幅显示优化
     if (Configs.ShowNumPercentDetail){  // 通过配置开启或者关闭
         if (needPercent && evalResult < 1.3 && evalResult > 0.7) {
             const temp = format(evalResult * 100 - 100, { notation: 'fixed', precision: 2 })
             const fix = evalResult > 1 ? "+" : ""
             const percent = fix + parseFloat(temp).toString() + "%";
-            res = `${res} (${percent})`;
+            formatted = `${formatted} (${percent})`;
         }
     }
-    return res
+    return formatted
 }
 
 function formatEvalResult(evalResult: MathType, needPercent: boolean): string {
